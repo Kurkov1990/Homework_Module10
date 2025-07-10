@@ -2,3 +2,6 @@ name age
 Alice 21
 Ryan 30
 John 25
+Bob -45
+David 40
+Kate er

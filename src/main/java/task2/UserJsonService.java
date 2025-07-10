@@ -5,9 +5,7 @@ import com.google.gson.GsonBuilder;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class UserJsonService {
 
@@ -31,23 +29,43 @@ public class UserJsonService {
             }
             String[] headers = headerLine.trim().split("\\s+");
 
+            int nameIndex = -1;
+            int ageIndex = -1;
+            for (int i = 0; i < headers.length; i++) {
+                if (headers[i].equalsIgnoreCase("name")) {
+                    nameIndex = i;
+                } else if (headers[i].equalsIgnoreCase("age")) {
+                    ageIndex = i;
+                }
+            }
+
+            if (nameIndex == -1 || ageIndex == -1) {
+                System.out.println("Missing required 'name' or 'age' columns.");
+                return users;
+            }
+
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) {
                     continue;
                 }
+
                 String[] values = line.trim().split("\\s+");
-                Map<String, String> data = new HashMap<>();
-                for (int i = 0; i < headers.length && i < values.length; i++) {
-                    data.put(headers[i], values[i]);
+                if (values.length <= Math.max(nameIndex, ageIndex)) {
+                    continue;
                 }
 
-                String name = data.getOrDefault("name", "");
-                int age = 0;
+                String name = values[nameIndex];
+                int age;
                 try {
-                    age = Integer.parseInt(data.getOrDefault("age", "0"));
+                    age = Integer.parseInt(values[ageIndex]);
+                    if (age < 0 || age > 120) {
+                        System.out.printf("Skipping user %s with unrealistic age: %d%n", name, age);
+                        continue;
+                    }
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid age value, defaulting to 0: " + data.get("age"));
+                    System.out.printf("Skipping user %s with invalid format of the age: %s%n", name, values[ageIndex]);
+                    continue;
                 }
 
                 users.add(new User(name, age));
@@ -67,5 +85,3 @@ public class UserJsonService {
         }
     }
 }
-
-
